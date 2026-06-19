@@ -53,7 +53,7 @@ class NetworkDataExtract():
 
 
 if __name__=="__main__":
-    FILE_PATH=Path("network_Data") / "phisingData.csv"
+    FILE_PATH=Path("network_Data") / "phishingData.csv"
     DATABASE="kush"
     Collection="NetworkData"
     networkobj=NetworkDataExtract()

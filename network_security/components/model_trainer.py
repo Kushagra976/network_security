@@ -12,6 +12,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier,GradientBoostingClassifier
 from network_security.utils.main_utils.utils import evaluate_models
+import mlflow
 
 
 class ModelTrainer:
@@ -19,6 +20,23 @@ class ModelTrainer:
         try:
             self.model_trainer_config=model_trainer_config
             self.data_transformation_artifact=data_transformation_artifact
+        except Exception as e:
+            raise NetworkSecurityException(e,sys)
+
+    def track_mlflow(self,best_model_name,best_model,train_metric,test_metric):
+        try:
+            with mlflow.start_run():
+                mlflow.log_param("best_model_name",best_model_name)
+
+                mlflow.log_metric("train_f1_score",train_metric.f1_score)
+                mlflow.log_metric("train_precision_score",train_metric.precision_score)
+                mlflow.log_metric("train_recall_score",train_metric.recall_score)
+
+                mlflow.log_metric("test_f1_score",test_metric.f1_score)
+                mlflow.log_metric("test_precision_score",test_metric.precision_score)
+                mlflow.log_metric("test_recall_score",test_metric.recall_score)
+
+                mlflow.sklearn.log_model(best_model,"model")
         except Exception as e:
             raise NetworkSecurityException(e,sys)
 
@@ -76,6 +94,13 @@ class ModelTrainer:
 
         y_test_pred=best_model.predict(x_test)
         classification_test_metric=get_classification_score(y_true=y_test,y_pred=y_test_pred)
+
+        self.track_mlflow(
+            best_model_name=best_model_name,
+            best_model=best_model,
+            train_metric=classification_train_metric,
+            test_metric=classification_test_metric
+        )
 
         preprocessor=load_object(file_path=self.data_transformation_artifact.transformed_object_file_path)
         model_dir_path=os.path.dirname(self.model_trainer_config.trained_model_file_path)

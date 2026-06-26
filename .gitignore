@@ -5,3 +5,6 @@ __pycache__/
 *$py.class
 logs/
 *.log
+Artifacts/
+mlruns/
+mlflow.db
